@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=2.0.0
+asyncpg
+pydantic
+pydantic-settings
+# Для тестів
+pytest
+pytest-asyncio
+httpx
+aiosqlite
