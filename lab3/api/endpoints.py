@@ -51,5 +51,7 @@ async def get_book(book_id: UUID, db: AsyncSession = Depends(get_db)):
 @router.delete("/books/{book_id}", status_code=204)
 async def delete_book(book_id: UUID, db: AsyncSession = Depends(get_db)):
     service = BookService(db)
-    await service.delete_book(book_id)
+    is_deleted = await service.delete_book(book_id)
+    if not is_deleted:
+        raise HTTPException(status_code=404, detail="Book not found")
     return None

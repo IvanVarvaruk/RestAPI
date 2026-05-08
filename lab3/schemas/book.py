@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 from typing import Optional, List
 
@@ -14,11 +14,11 @@ class BookCreate(BookBase):
 
 class Book(BookBase):
     id: UUID
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class PaginatedBooks(BaseModel):
     total: int
     limit: int
     offset: int
     items: List[Book]
+    next_cursor: Optional[UUID] = None
