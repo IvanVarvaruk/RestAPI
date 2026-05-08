@@ -1,0 +1,10 @@
+services:
+  test_db:
+    image: postgres:15-alpine
+    container_name: library5_test_db
+    environment:
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_pass
+      - POSTGRES_DB=library5_test
+    ports:
+      - "5434:5432"

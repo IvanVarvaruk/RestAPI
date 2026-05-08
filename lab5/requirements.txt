@@ -1,0 +1,8 @@
+Flask
+Flask-RESTful
+flasgger
+marshmallow
+sqlalchemy>=2.0.0
+psycopg2-binary
+pytest
+uuid6
