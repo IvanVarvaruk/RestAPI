@@ -1,0 +1,11 @@
+services:
+  test_db:
+    image: mongo:7
+    container_name: library4_test_mongo
+    ports:
+      - "27018:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 2s
+      timeout: 5s
+      retries: 15

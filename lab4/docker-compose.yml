@@ -1,0 +1,23 @@
+services:
+  db:
+    image: mongo:7
+    container_name: library4_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  app:
+    build: .
+    container_name: library4_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mongodb://db:27017/library4
+    depends_on:
+      - db
+
+volumes:
+  mongo_data:

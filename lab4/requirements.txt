@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+motor
+pymongo
+pydantic
+pydantic-settings
+# Для тестів
+pytest
+pytest-asyncio
+httpx
