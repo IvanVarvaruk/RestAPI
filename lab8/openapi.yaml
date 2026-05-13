@@ -1,0 +1,343 @@
+openapi: 3.0.3
+info:
+  title: Library API
+  version: "1.0.0"
+servers:
+  - url: http://localhost:4010
+
+tags:
+  - name: auth
+    description: Authentication
+  - name: books
+    description: Books catalog
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+    UserCreate:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: alice
+        password:
+          type: string
+          format: password
+          example: s3cret
+    UserResponse:
+      type: object
+      required: [id, username]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 8d4e2f6d-2ed0-4b47-8b2d-3d2b3c2f4a66
+        username:
+          type: string
+          example: alice
+    Token:
+      type: object
+      required: [access_token, refresh_token, token_type]
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          example: bearer
+    RefreshTokenRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    BookCreate:
+      type: object
+      required: [title, author, status, year]
+      properties:
+        title:
+          type: string
+          example: The Hobbit
+        author:
+          type: string
+          example: J.R.R. Tolkien
+        description:
+          type: string
+          nullable: true
+          example: A fantasy novel.
+        status:
+          type: string
+          example: available
+        year:
+          type: integer
+          example: 1937
+    Book:
+      allOf:
+        - $ref: "#/components/schemas/BookCreate"
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: 7c4c7d64-0d2c-4c8f-a6bb-6f2b0f0c8b7c
+    PaginatedBooks:
+      type: object
+      required: [total, limit, offset, items]
+      properties:
+        total:
+          type: integer
+          example: 42
+        limit:
+          type: integer
+          example: 10
+        offset:
+          type: integer
+          example: 0
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Book"
+        next_cursor:
+          type: string
+          format: uuid
+          nullable: true
+          example: 7c4c7d64-0d2c-4c8f-a6bb-6f2b0f0c8b7c
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: Username already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Login (OAuth2 password flow form)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  example: alice
+                password:
+                  type: string
+                  format: password
+                  example: s3cret
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "401":
+          description: Incorrect username or password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "401":
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /books/:
+    get:
+      tags: [books]
+      summary: List books
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - in: query
+          name: cursor
+          required: false
+          description: ID of the last book from the previous page
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: author
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: sort_by
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedBooks"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags: [books]
+      summary: Add a book
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /books/{book_id}:
+    get:
+      tags: [books]
+      summary: Get a book
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: book_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Book not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [books]
+      summary: Delete a book
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: book_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Book not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
