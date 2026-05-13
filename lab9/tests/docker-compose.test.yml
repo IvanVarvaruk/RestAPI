@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  test_db:
+    image: postgres:15-alpine
+    container_name: library9_test_db
+    environment:
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_pass
+      - POSTGRES_DB=library9_test
+    ports:
+      - "5433:5432"

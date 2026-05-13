@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=2.0.0
+asyncpg
+pydantic
+pydantic-settings
+pytest
+pytest-asyncio
+httpx
+aiosqlite
+uuid6
+bcrypt
+python-jose[cryptography]
+python-multipart
